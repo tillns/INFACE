@@ -11,7 +11,7 @@ Basic functionality includes:
    yielding various output meshes. Each mesh instance can be viewed in the visualizer and optionally saved.
 
 Visualization requires open3d.
-Reconstruction with back matching requires scipy, igl, and sksparse, potentially also fbpca.
+Reconstruction with back matching requires scipy, and sksparse, potentially also fbpca.
 
 Author: Till Schnabel (contact till.schnabel@inf.ethz.ch)
 
@@ -39,10 +39,13 @@ SOFTWARE.
 """
 
 import warnings
+from argparse import ArgumentParser
 from functools import partial
 import h5py
 import numpy as np
 from abc import ABC, abstractmethod
+
+from linear_regressor import LinearRegressor
 from mesh import Mesh
 from typing import Union, Tuple, List
 
@@ -66,6 +69,22 @@ class MorphableModel(ABC):
             raise TypeError("Latent space dimensions for mean and standard deviation do not match.")
         self.triangles = getattr(self, "triangles")
 
+    def normalize_weights(self, latent_weights):
+        return (np.asarray(latent_weights) - self.latent_mean) / self.latent_std
+
+    def unnormalize_weights(self, latent_weights):
+        return np.asarray(latent_weights) * self.latent_std + self.latent_mean
+
+    @staticmethod
+    def load_correct_morphable_model(path_to_hdf5_file: str) -> "MorphableModel":
+        from AE_morphable_model import AEMorphableModel
+        from PCA_morphable_model import PCAMorphableModel
+        params = MorphableModel.load_params_from_hdf5_to_dict(path_to_hdf5_file)
+        if "eigenvalues" in params:
+            return PCAMorphableModel(path_to_hdf5_file)
+        else:
+            return AEMorphableModel(path_to_hdf5_file)
+
     @staticmethod
     def load_params_from_hdf5_to_dict(path_to_hdf5_file: str) -> dict:
         def load_hdf5_to_dict(hdf5_group) -> dict:
@@ -83,13 +102,41 @@ class MorphableModel(ABC):
                         # Otherwise, treat it as a nested dictionary
                         data[key] = load_hdf5_to_dict(item)
                 else:
-                    # If it's a dataset, read the data
-                    data[key] = item[:]
+                    # If it's a dataset, read the data (array or scalar)
+                    data[key] = item[()]
             return data
 
         with h5py.File(path_to_hdf5_file, "r") as f:
             params = load_hdf5_to_dict(f)
         return params
+
+    def convert_mesh_with_linear_regressor(
+            self, linear_regressor: Union[LinearRegressor, str], input_mesh: Mesh,
+            output_morphable_model: "MorphableModel" = None,
+            unknown_vertex_mask: np.ndarray = None, invert_mask: bool = False) -> Union[np.ndarray, Mesh]:
+        """
+        Convert mesh from current morphable model to a mesh from another morphable model using a linear regressor.
+        :param linear_regressor: The linear regressor to convert the mesh latent code with.
+        :param input_mesh: The mesh from the current morphable model to be converted.
+        :param output_morphable_model: (Optional) The other morphable model to go from mesh latent to actual mesh.
+                                       If not provided, mesh latent is returned.
+        :param unknown_vertex_mask: (Optional) cf. encode() function.
+        :param invert_mask: (Optional) cf. encode() function.
+        :return: If no output_morphable_model was provided, the translated latent code is returned as numpy array.
+                 If it is, the actual translated mesh is returned.
+
+        """
+        linear_regressor = LinearRegressor(linear_regressor) if isinstance(linear_regressor, str) else linear_regressor
+        mesh_latent = self.encode(input_mesh.get_vertices(), unknown_vertex_mask=unknown_vertex_mask,
+                                  invert_mask=invert_mask)
+        translated_latent = linear_regressor.translate_latent_code(mesh_latent)
+        if isinstance(output_morphable_model, MorphableModel):
+            translated_vertices = output_morphable_model.decode(translated_latent)
+            return output_morphable_model.get_mesh_from_vertices(translated_vertices)
+        else:
+            if not output_morphable_model is None:
+                raise TypeError(f"Unknown type for output_morphable_model: {output_morphable_model}")
+            return translated_latent
 
     @staticmethod
     def get_unknown_vertex_mask(unknown_vertex_mask: np.ndarray, vertices: np.ndarray,
@@ -136,6 +183,10 @@ class MorphableModel(ABC):
         :return: nx3 numpy array of vertices.
         """
         pass
+
+    def get_mesh_from_vertices(self, vertices: np.ndarray) -> Mesh:
+        return Mesh(vertices=vertices, triangles=self.triangles)
+
 
     def get_number_of_components(self) -> int:
         return len(self.latent_mean)
@@ -204,7 +255,9 @@ class MorphableModel(ABC):
     #
     # Partial credit for implementation of this method goes to Defne Kurtulus
     def visualize(self, min_val: float = -3, max_val: float = 3,
-                  shape_components: Union[List[int], int] = 5):
+                  shape_components: Union[List[int], int] = 5,
+                  linear_regressor: LinearRegressor = None,
+                  translated_morphable_model: "MorphableModel" = None,):
         """
         Visualize a morphable model via sliders that each represent an adjustable component of the morphable model.
         The visualized mesh represents the model's generation based on the sliders' state.
@@ -236,7 +289,7 @@ class MorphableModel(ABC):
             return self.decode(self.latent_mean + current_weights*self.latent_std)
 
         def get_current_mesh() -> Mesh:
-            return Mesh(get_current_vertices(), self.triangles)
+            return self.get_mesh_from_vertices(get_current_vertices())
 
         open3d.visualization.gui.Application.instance.initialize()
         w = open3d.visualization.gui.Application.instance.create_window("3DMM GUI", 1920, 1080)
@@ -263,6 +316,12 @@ class MorphableModel(ABC):
             mesh = get_current_mesh()
             _widget3d.scene.clear_geometry()
             _widget3d.scene.add_geometry(f'mesh', mesh.get_open3d_mesh(compute_normals=True), material)
+            if linear_regressor is not None and translated_morphable_model is not None:
+                translated_mesh = self.convert_mesh_with_linear_regressor(
+                    linear_regressor=linear_regressor, input_mesh=mesh,
+                    output_morphable_model=translated_morphable_model)
+                _widget3d.scene.add_geometry(f'translated_mesh', translated_mesh.get_open3d_mesh(compute_normals=True),
+                                             material)
 
         def _on_mouse_widget3d(event):
             return open3d.visualization.gui.Widget.EventCallbackResult.IGNORED
@@ -348,10 +407,9 @@ class MorphableModel(ABC):
         try:
             import scipy.sparse as spsp
             from scipy.sparse import diags
-            import igl
             from sksparse.cholmod import cholesky_AAt
         except ImportError:
-            warnings.warn("Some more libraries are required to use the back matching feature. Install scipy, igl, "
+            warnings.warn("Some more libraries are required to use the back matching feature. Install scipy, "
                           "and sksparse.")
             return reconstructed_vertices
 
@@ -366,7 +424,7 @@ class MorphableModel(ABC):
         # "Statistically Motivated 3D Faces Reconstruction" from Basso and Vetter (2006)
 
         # Connection matrix (which vertex is connected to which as defined by triangles)
-        adjacency_matrix = spsp.csc_matrix(igl.adjacency_matrix(self.triangles))
+        adjacency_matrix = self.get_average_mesh().get_adjacency_matrix()
         adj_count = np.sum(adjacency_matrix, axis=1)
         K = adjacency_matrix.multiply(spsp.csc_matrix(1 / adj_count.reshape((-1, 1))))
         # Convert to LIL format for efficient diagonal modification
@@ -405,3 +463,24 @@ class MorphableModel(ABC):
         #
         #
         # End credit
+
+
+def main():
+    parser = ArgumentParser()
+    parser.add_argument('--path_to_hdf5_file', type=str, required=True,
+                        help="Absolute path to autoencoder or PCA model file with .h5 ending.")
+    parser.add_argument('--path_to_linear_regressor', type=str, default=None,
+                        help="Absolute path to linear regressor file with .json ending.")
+    parser.add_argument('--path_to_other_hdf5_file', type=str, default=None,
+                        help="Absolute path to another model to translate to via linear regressor.")
+    args = parser.parse_args()
+    model = MorphableModel.load_correct_morphable_model(args.path_to_hdf5_file)
+    if args.path_to_other_hdf5_file is not None and args.path_to_linear_regressor is not None:
+        model.visualize(linear_regressor=LinearRegressor(args.path_to_linear_regressor),
+                        translated_morphable_model=model.load_correct_morphable_model(args.path_to_other_hdf5_file))
+    else:
+        model.visualize()
+
+
+if __name__ == '__main__':
+    main()

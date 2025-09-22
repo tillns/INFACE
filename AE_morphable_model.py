@@ -4,7 +4,7 @@ saved as an HDF5 file. This file can be run as a script by providing the path to
 The model visualizer from the abstract MorphableModel class is then called.
 
 Visualization requires open3d.
-Reconstruction with back matching requires scipy, igl, and sksparse.
+Reconstruction with back matching requires scipy, and sksparse.
 
 Author: Till Schnabel (contact till.schnabel@inf.ethz.ch)
 
@@ -31,16 +31,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from argparse import ArgumentParser
-from morphable_model import MorphableModel
-import numpy as np
+from morphable_model import MorphableModel, main
 from typing import List, Tuple
 from mesh import Mesh
 
+import numpy as np
+
 class Encoder:
-    def __init__(self, matrix_mults: List[np.ndarray], biases: List[np.ndarray]):
+    def __init__(self, matrix_mults: List[np.ndarray], biases: List[np.ndarray], relu_factor: float = 0.2):
         self.matrix_mults = matrix_mults
         self.biases = biases
+        self.relu_factor = relu_factor
 
     def encode(self, x: np.ndarray) -> np.ndarray:
         x_encoded = x.flatten()
@@ -48,7 +49,8 @@ class Encoder:
             # fully-connected layer
             x_encoded = matrix_mult @ x_encoded + bias
             # leaky ReLU activation
-            x_encoded[x_encoded < 0] *= 0.2
+            if self.relu_factor < 1:
+                x_encoded[x_encoded < 0] *= self.relu_factor
         return x_encoded
 
     def get_latent_dimension(self):
@@ -56,9 +58,10 @@ class Encoder:
 
 
 class Decoder:
-    def __init__(self, matrix_mults: List[np.ndarray], biases: List[np.ndarray]):
+    def __init__(self, matrix_mults: List[np.ndarray], biases: List[np.ndarray], relu_factor: float = 0.2):
         self.matrix_mults = matrix_mults
         self.biases = biases
+        self.relu_factor = relu_factor
 
     def decode(self, latent: np.ndarray) -> np.ndarray:
         x_decoded = np.array(latent)
@@ -66,8 +69,8 @@ class Decoder:
             # fully-connected layer
             x_decoded = matrix_mult @ x_decoded + bias
             # leaky ReLU activation (not applied to output)
-            if num_layer < len(self.matrix_mults) - 1:
-                x_decoded[x_decoded < 0] *= 0.2
+            if num_layer < len(self.matrix_mults) - 1 and self.relu_factor < 1:
+                x_decoded[x_decoded < 0] *= self.relu_factor
         return x_decoded
 
     def get_latent_dimension(self):
@@ -84,9 +87,11 @@ class AEMorphableModel(MorphableModel):
 
         # Load encoder(s)
         if "encoder" in params:
-            self.encoders = [Encoder(params["encoder"]["matrix_mults"], params["encoder"]["biases"])]
+            self.encoders = [Encoder(params["encoder"]["matrix_mults"], params["encoder"]["biases"],
+                                     relu_factor=params["encoder"].get("relu_factor", 0.2))]
         else:
-            self.encoders = [Encoder(params[encoder_type]["matrix_mults"], params[encoder_type]["biases"])
+            self.encoders = [Encoder(params[encoder_type]["matrix_mults"], params[encoder_type]["biases"],
+                                     relu_factor=params[encoder_type].get("relu_factor", 0.2))
                              for encoder_type in ["id_encoder", "exp_encoder", "age_encoder"]]
         # sanity check dimensions
         self.dims_per_encoder = [encoder.get_latent_dimension() for encoder in self.encoders]
@@ -96,7 +101,8 @@ class AEMorphableModel(MorphableModel):
         self.is_disentangled = len(self.encoders) > 1
 
         # Load decoder
-        self.decoder = Decoder(params["decoder"]["matrix_mults"], params["decoder"]["biases"])
+        self.decoder = Decoder(params["decoder"]["matrix_mults"], params["decoder"]["biases"],
+                               relu_factor=params["decoder"].get("relu_factor", 0.2))
         if not self.decoder.get_latent_dimension() == len(self.latent_mean):
             raise AssertionError("The size of the latent vector should match "
                                  "the decoder's input size.")
@@ -150,7 +156,11 @@ class AEMorphableModel(MorphableModel):
         return Mesh(self.decode(mesh_latent), self.triangles)
 
     def visualize(self, min_val: float = -3, max_val: float = 3,
-                  num_components_per_disentangled_latent: int = 5):
+                  num_components_per_disentangled_latent: int = 5, **kwargs):
+        """
+        Supports disentangled visualization by providing sliders for each of the disentangled spaces.
+        Cf. docs for visualize() method in MorphableModel superclass.
+        """
         shape_components = []
         start_index = 0
         for num_encoder, encoder in enumerate(self.encoders):
@@ -158,16 +168,7 @@ class AEMorphableModel(MorphableModel):
             shape_components.extend(list(range(start_index, start_index + min(num_components_per_disentangled_latent, latent_dim))))
             start_index += latent_dim
 
-        super().visualize(min_val=min_val, max_val=max_val, shape_components=shape_components)
-
-
-
-def main():
-    parser = ArgumentParser()
-    parser.add_argument('--path_to_hdf5_file', type=str, required=True)
-    args = parser.parse_args()
-    model = AEMorphableModel(args.path_to_hdf5_file)
-    model.visualize()
+        super().visualize(min_val=min_val, max_val=max_val, shape_components=shape_components, **kwargs)
 
 
 if __name__ == '__main__':

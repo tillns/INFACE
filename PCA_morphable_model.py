@@ -4,7 +4,7 @@ saved as an HDF5 file. This file can be run as a script by providing the path to
 The model visualizer from the abstract MorphableModel class is then called.
 
 Visualization requires open3d.
-Reconstruction with back matching requires scipy, igl, fbpca, and sksparse.
+Reconstruction with back matching requires scipy, fbpca, and sksparse.
 
 Author: Till Schnabel (contact till.schnabel@inf.ethz.ch)
 
@@ -31,11 +31,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from argparse import ArgumentParser
+from numpy.linalg import LinAlgError
+from morphable_model import MorphableModel, main
+
 import warnings
 import numpy as np
-from numpy.linalg import LinAlgError
-from morphable_model import MorphableModel
+
 
 def average_dist_to_mean(vertices):
     mean_vertex = np.mean(vertices, axis=0)
@@ -118,15 +119,10 @@ class PCAMorphableModel(MorphableModel):
 
     def decode(self, latent: np.ndarray) -> np.ndarray:
         decoded_flat = np.dot(latent, self.components)
-        return np.reshape(decoded_flat, (-1, 3)) + self.mean_vertices
+        return np.reshape(decoded_flat, (*decoded_flat.shape[:-1], -1, 3)) + self.mean_vertices
 
-
-def main():
-    parser = ArgumentParser()
-    parser.add_argument('--path_to_hdf5_file', type=str, required=True)
-    args = parser.parse_args()
-    model = PCAMorphableModel(args.path_to_hdf5_file)
-    model.visualize()
+    def get_covariance_matrix(self):
+        return np.transpose(self.components).dot(np.diag(1/self.eigenvalues)).dot(self.components)
 
 
 if __name__ == '__main__':
