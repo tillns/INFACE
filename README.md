@@ -303,12 +303,26 @@ year="2024",
 publisher="Springer Nature Switzerland",
 address="Cham",
 pages="217--227",
-isbn="978-3-031-72384-1"
+isbn="978-3-031-72384-1",
+doi="10.1007/978-3-031-72384-1_21"
 }
 ```
 or our INCRAN paper
 ```
-TODO: INSERT CITATION
+@InProceedings{SchTil_MultiLinear_MICCAI2025,
+author="Schnabel, Till N. and Lill, Yoriko and Benitez, Benito K. and Krief, Gaspard and Tapia Cor{\'o}n, Sebasti{\'a}n 
+and Pr{\"u}fer, Friederike and Metzler, Philipp and Mueller, Andreas A. and Gross, Markus and Solenthaler, Barbara",
+title="Multi-linear 3D Craniofacial Infant Shape Model",
+booktitle="Medical Image Computing and Computer Assisted Intervention -- MICCAI 2025",
+year="2025",
+publisher="Springer Nature Switzerland",
+address="Cham",
+pages="338--348",
+volume="LNCS 15969",
+month="09",
+isbn="978-3-032-05127-1",
+doi="10.1007/978-3-032-05127-1_33"
+}
 ```
 
 
