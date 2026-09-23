@@ -1,11 +1,11 @@
 <p align="center">
-<img src="images/landmarking_tool_preview.png">
+<img src="../../images/landmarking_tool_preview.png">
 </p>
 
 We describe here the landmarking tool that I (Till Schnabel) developed throughout my PhD and Postdoc at ETH Zurich.
 It is meant to make the effort of defining landmarks and segmenting artifacts on a large number of scans 
 as easy and efficient as possible. If you have any questions, feel free to contact me via 
-[email](till@familie-schnabel.ch).
+[email](mailto:till@familie-schnabel.ch).
 
 # Getting Started
 ## Downloading Blender
@@ -64,7 +64,7 @@ number above 1 for `num_window_splits`.
 In order to see the button interface of the landmarking tool, you still need to click the **Landmarking** tab,
 which should be located at the bottom of the panel at top right of each subwindow, cf. image below:
 <p align="center">
-<img src="images/landmarking_tool_click_tab.png" width="60%" style="display:inline-block;">
+<img src="../../images/landmarking_tool_click_tab.png" width="60%" style="display:inline-block;">
 </p>
 Now you should be ready to start:
 
@@ -72,7 +72,7 @@ Now you should be ready to start:
 First, you can hover over any button with your mouse, and it should show you a description of what that button does,
 cf. below:
 <p align="center">
-<img src="images/landmarking_tool_hover_info.png" width="80%" style="display:inline-block;">
+<img src="../../images/landmarking_tool_hover_info.png" width="80%" style="display:inline-block;">
 </p>
 
 Try to avoid most of Blender's functionality and only interact with the tool's button interface.
@@ -94,7 +94,7 @@ also unskip landmarks by dragging and dropping a skipped landmark.
 to Blender's Edit Mode, where you can select vertices. This mode is used to segment geometric artifacts, such as the 
 pacifier in the example shown below:
 <p align="center">
-<img src="images/landmarking_tool_edit_mode.png" width="80%" style="display:inline-block;">
+<img src="../../images/landmarking_tool_edit_mode.png" width="80%" style="display:inline-block;">
 </p> 
 
 - Blender offers a range of options hwo to select vertices. We recommend the circle tool
@@ -109,7 +109,7 @@ can distinguish between geometric and texture artifacts.
 
 If you press on a landmark, additional buttons will appear:
 <p align="center">
-<img src="images/landmarking_tool_specific_landmark.png" width="100%" style="display:inline-block;">
+<img src="../../images/landmarking_tool_specific_landmark.png" width="100%" style="display:inline-block;">
 </p> 
 
 You can use the first row to adjust the landmark position freely
@@ -161,7 +161,7 @@ you can also see the skull which might provide more information about certain ke
 where the bony part of the nose ends or where the pogonion exactly lies. We demonstrate such a case
 with our templates below:
 <p align="center">
-<img src="images/landmarking_tool_two_meshes.png" width="100%" style="display:inline-block;">
+<img src="../../images/landmarking_tool_two_meshes.png" width="100%" style="display:inline-block;">
 </p> 
 
 
@@ -170,7 +170,7 @@ We already mentioned that you can slice your mesh if you want to place landmarks
 be hidden. We implemented the slicing feature in a way that you can also segment artifacts while having the mesh 
 sliced. This also works if you have more than one mesh. Cf. below:
 <p align="center">
-<img src="images/landmarking_tool_slice_edit.png" width="100%" style="display:inline-block;">
+<img src="../../images/landmarking_tool_slice_edit.png" width="100%" style="display:inline-block;">
 </p> 
 
 

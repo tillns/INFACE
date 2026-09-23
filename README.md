@@ -136,7 +136,7 @@ With that, subsequent cranial measurements and adjustments can be automatically 
 be normalized to the unit cube and reconstructed with the implicit model. Expressions can be changed, skull
 inferred, etc.
 
-Please contact [Till Schnabel](till@familie-schnabel.ch) or [Barbara Solenthaler](solenthaler@inf.ethz.ch) 
+Please contact [Till Schnabel](mailto:till@familie-schnabel.ch) or [Barbara Solenthaler](mailto:solenthaler@inf.ethz.ch) 
 to get access to the model parameters or 
 if you have any questions about the code or related to the papers.
 Access is only provided to academic researchers. Usage of the models is restricted solely to research purposes.
@@ -674,7 +674,7 @@ python -m src.objects.cranial_attributes --path_to_hdf5_file /PATH/TO/YOUR/MODEL
 
 ## Dataset
 Due to privacy concerns, we cannot share the datasets our models were trained on. 
-Please contact [Barbara Solenthaler](solenthaler@inf.ethz.ch) if you're from an academic institution and
+Please contact [Barbara Solenthaler](mailto:solenthaler@inf.ethz.ch) if you're from an academic institution and
 you're interested in setting up a data sharing agreement.
 
 ## References
