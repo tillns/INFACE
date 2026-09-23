@@ -32,3 +32,16 @@ __pycache__/
 
 ## Mac
 **/.DS_Store
+
+## Models are not uploaded to repo; access must be requested
+models/**
+**/*.h5
+**/*.pt
+**/*.pth
+**/*.ckpt
+
+# We uploaded some sample registration configs, but further configs are not uploaded
+registration_configs/**
+
+# config should be adjusted by the user to contain the relevant machine-specific paths
+config.py

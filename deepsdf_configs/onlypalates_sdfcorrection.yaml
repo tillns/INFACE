@@ -1,0 +1,45 @@
+# Config file for training SDF model
+
+dataset: None   # Dataset used, needs to be filled in
+dataset_input_numbers: [2]
+registered_regions_per_input: ["palate"]
+
+# training
+epochs: 100000
+lr_model: 0.0005   # Initial learning rate (model)
+lr_latent: 0.001    # Initial learning rate (latent vector)
+batch_size: 4  # Was 4 originally, NPHM used 5 (not 32??)
+model_grad_clip: 0.1
+latent_grad_clip: 0.1
+weight_decay: 0.01
+# Landmark indices for the registered meshes (left-right pairs written together)
+include_landmarks: [
+  # palate
+  [23665, 12055,   260, 76,   20211, 8588,   19942, 8318,   8255, 23730,
+  192,   48,   17]
+]
+mini_net_landmark_indices: []
+loss_weights:
+    surface: 2
+    normal: 0.3
+    eikonal: 0.1
+    off_surface: 0.01
+    off_surface_alpha: 10
+    latent_reg: 0.01
+    landmarks_deform: 1
+    sdf_correction: 0.2
+
+# checkpoints
+save_ckpt_interval: 100
+num_best_checkpoints_to_keep: 10
+
+# architecture
+use_nphm_model_setting: True
+use_sdf_correction: True
+predict_correspondence_landmarks: False
+latent_size: 128   # Size of the latent vector
+
+# lr_scheduling
+lr_scheduler: fix   # Learning rate scheduling
+lr_decay_multiplier: 0.5   # Multiplier for the learning rate scheduling
+lr_decay_step_size: 800   # Patience in the learning rate scheduling

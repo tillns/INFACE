@@ -1,0 +1,155 @@
+# Config file for a PCA-model-based face registration
+
+# Path to head model; we choose the PCA model here, but the autoencoder would also work
+model_path: 'INCRAN/pca_head_model.h5'
+
+# Define the landmarks on the model and their weighting to drive the registration
+model_landmarks: {
+     "right_eye_outer": {
+        weight: 1.0,
+     },
+     "right_eye_inner": {
+        weight: 1.0,
+     },
+     "left_eye_inner": {
+        weight: 1.0,
+     },
+     "left_eye_outer": {
+        weight: 1.0,
+     },
+     "nasion": {
+        weight: 0.5,
+     },
+     "pronasale": {
+        weight: 1.0,
+     },
+     "subnasale": {
+        weight: 1.0,
+     },
+     "cubids_bow_center": {
+        weight: 1.0,
+     },
+     "lower_lip_outer_middle": {
+        weight: 1.0,
+     },
+     "outer_lip_corner_right": {
+        weight: 1.0,
+     },
+     "outer_lip_corner_left": {
+        weight: 1.0,
+     },
+     "pogonion": {
+        weight: 0.3,
+     },
+     "ear_tragus_right": {
+        weight: 1.0,
+     },
+     "ear_tragus_left": {
+        weight: 1.0,
+     },
+}
+
+# regional selection for principal curvature bounds
+# We empirically determined these bounds for the upper central region of the scalp
+# to robustly ignore the pointy top of the cap the babies were wearing. Adjust if needed.
+min_curvature_lower_bound:
+    upper_scalp_central: -2
+min_curvature_upper_bound:
+    upper_scalp_central: 9
+max_curvature_lower_bound:
+    upper_scalp_central: -2
+max_curvature_upper_bound:
+    upper_scalp_central: 9
+
+#
+# The head template contains some regions that we don't want to register
+#
+# The ignore indices are not optimized towards any correspondences, but they
+# are still part of the optimization
+vertex_regions_to_ignore: ["ears", "inner_eyelids", "inner_lips", "nose_holes"]
+#
+# The exclude indices, on the other hand, are taken completely out of the optimization.
+# E.g., since the eyes are separate mesh components on the head model, we exclude them.
+vertex_regions_to_exclude: ["eye_left", "eye_right", "inner_eyelids_ignore"]
+
+
+# Torch optimization setting
+# Each element of the list specifies one optimization loop that goes until convergence
+# The entries in each element are explained below.
+iteration_settings: [
+    {
+      # weight of the model weight regularization loss (squared normalized latent)
+        "model_weight": 1,
+      # weight of the landmark loss (Euclidean distance between source and target landmarks)
+        "lm_weight": 30,
+      # Correspondence weight (distance between the model vertices and the correspondences found on the target)
+        "dist_weight": 0,
+      # Whether to also optimize the transformation (translation and rotation)
+      # of the model mesh in addition to the model parameters.
+        "optimize_transf": True,
+      # exclude correspondences if the source and target normals don't align well, i.e.,
+      # if their dot product falls below this threshold
+        "normal_thresh": 0.9,
+      # exclude correspondences if the target normals don't align well with the connection vector
+      # between source vertices and their target correspondences, i.e.,
+      # if their dot product falls below this threshold
+        "normal_connect_thresh": 0.6,
+      # This option registers the model to an adjusted version of the target mesh, where vertices
+      # estimated to be inside the target mesh are removed. This proved to be a helpful setting
+      # for registering the scalp region in scans that had some artifact structures inside of the head.
+        "remove_internal_structures": True
+    },
+    {
+        "model_weight": 0.1,
+        "lm_weight": 30,
+        "dist_weight": 30,
+        "optimize_transf": True,
+        "normal_thresh": 0.9,
+        "normal_connect_thresh": 0.6,
+        "remove_internal_structures": True
+    },
+    {
+        "model_weight": 0.05,
+        "lm_weight": 12,
+        "dist_weight": 1,
+        "optimize_transf": False,
+        "normal_thresh": 0.8,
+        "normal_connect_thresh": 0.9,
+        "remove_internal_structures": True
+    },
+    {
+        "model_weight": 0.02,
+        "lm_weight": 12,
+        "dist_weight": 1,
+        "optimize_transf": False,
+        "normal_thresh": 0.8,
+        "normal_connect_thresh": 0.9,
+        "remove_internal_structures": True
+    },
+    # Two iterations of NICP refinement
+    {
+        # This specifies that we use NICP instead of torch optimization
+        "use_nicp": True,
+        "lm_weight": 0,
+        # NICP stiffness term
+        "stiffness": 2,
+        # Transformation can only be optimized via torch
+        "optimize_transf": False,
+        "normal_thresh": 0.8,
+        "normal_connect_thresh": 0.9,
+        "remove_internal_structures": True
+    },
+    {
+        "use_nicp": True,
+        "lm_weight": 0,
+        # Here we choose a separate stiffness for the scalp region than the remaining regions.
+        "stiffness":
+        {
+            "scalp_noneck_withforehead_withnasion": 0.5,
+            "default": 2
+        },
+        "optimize_transf": False,
+        "normal_thresh": 0.8,
+        "normal_connect_thresh": 0.9,
+    },
+]

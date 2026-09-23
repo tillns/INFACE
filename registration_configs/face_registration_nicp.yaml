@@ -1,0 +1,364 @@
+# Config file for a PCA-model-based face registration
+
+# Path to head model; we choose the PCA model here, but the autoencoder would also work
+model_path: 'INFACE/pca_model.h5'
+
+# Define the landmarks on the model as additional sparse correspondences to drive the registration.
+# You can specify the weight (default 1), the respective landmark index on the target (default is entry number),
+# and also the explicit coordinates or model mesh indices if the key is not an index name in the model class.
+model_landmarks: {
+    "columella_inner_right": {
+        weight: 1.0,
+        target_landmark_index: 36
+    },
+    "columella_inner_left": {
+        weight: 1.0,
+        target_landmark_index: 40
+    },
+    "cubids_bow_center": {
+        weight: 1.0,
+        target_landmark_index: 41
+    },
+    "ear_lower_right": {
+        weight: 1.0,
+        target_landmark_index: 107
+    },
+    "ear_lower_left": {
+        weight: 1.0,
+        target_landmark_index: 111
+    },
+    "ear_tragus_right": {
+        weight: 1.0,
+        target_landmark_index: 105
+    },
+    "ear_tragus_left": {
+        weight: 1.0,
+        target_landmark_index: 109
+    },
+    "ear_upper_right": {
+        weight: 1.0,
+        target_landmark_index: 106
+    },
+    "ear_upper_left": {
+        weight: 1.0,
+        target_landmark_index: 110
+    },
+    "eyebrow_right_inner_endpoint": {
+        weight: 0.5,
+        target_landmark_index: 4
+    },
+    "eyebrow_right_outer_endpoint": {
+        weight: 0.5,
+        target_landmark_index: 0
+    },
+    "eyebrow_left_inner_endpoint": {
+        weight: 0.5,
+        target_landmark_index: 9
+    },
+    "eyebrow_left_outer_endpoint": {
+        weight: 0.5,
+        target_landmark_index: 5
+    },
+    "glabella": {
+        weight: 0.5,
+        target_landmark_index: 10
+    },
+    "inner_lip_corner_right": {
+        weight: 1.0,
+        target_landmark_index: 56
+    },
+    "inner_lip_corner_left": {
+        weight: 1.0,
+        target_landmark_index: 60
+    },
+    "right_eye_inner": {
+        weight: 1.0,
+        target_landmark_index: 15
+    },
+    "right_eye_outer": {
+        weight: 1.0,
+        target_landmark_index: 19
+    },
+    "right_nostril": {
+        weight: 1.0,
+        target_landmark_index: [33, 34, 35]
+    },
+    "lip_cubids_peak_right": {
+        weight: 1.0,
+        target_landmark_index: 45
+    },
+    "lip_cubids_peak_left": {
+        weight: 1.0,
+        target_landmark_index: 49
+    },
+    "lower_lip_inner_middle": {
+        weight: 0.5,
+        target_landmark_index: 43
+    },
+    "lower_lip_outer_middle": {
+        weight: 0.5,
+        target_landmark_index: 44
+    },
+    "menton": {
+        weight: 0.5,
+        target_landmark_index: 74
+    },
+    "middle_outer_right": {
+        weight: 0.2,
+        target_landmark_index: 104
+    },
+    "middle_outer_left": {
+        weight: 0.2,
+        target_landmark_index: 108
+    },
+    "nasal_fold_right": {
+        weight: 1.0,
+        target_landmark_index: 84
+    },
+    "nasal_fold_left": {
+        weight: 1.0,
+        target_landmark_index: 92
+    },
+    "nasion": {
+        weight: 1.0,
+        target_landmark_index: 11
+    },
+    "outer_lip_corner_right": {
+        weight: 1.0,
+        target_landmark_index: 48
+    },
+    "outer_lip_corner_left": {
+        weight: 1.0,
+        target_landmark_index: 52
+    },
+    "pogonion": {
+        weight: 0.5,
+        target_landmark_index: 73
+    },
+    "pronasale": {
+        weight: 1.0,
+        target_landmark_index: 13
+    },
+    "left_eye_inner": {
+        weight: 1.0,
+        target_landmark_index: 24
+    },
+    "left_eye_outer": {
+        weight: 1.0,
+        target_landmark_index: 28
+    },
+    "left_nostril": {
+        weight: 1.0,
+        target_landmark_index: [37, 38, 39]
+    },
+    "subnasale": {
+        weight: 1.0,
+        target_landmark_index: 14
+    },
+    "tubercle": {
+        weight: 1.0,
+        target_landmark_index: 42
+    },
+}
+
+curvilinear_feature_refine_factor: 10
+
+# Curvilinear features are defined mostly the same as the landmarks, but
+# you need to provide multiple respective target landmark indices for proper parsing.
+model_curvilinear_features: {
+    # eyelid curves
+    "upper_left_eye": {
+        weight: 1,
+        target_landmark_indices: [28, 27, 26, 25, 24]
+    },
+    "lower_left_eye": {
+        weight: 1,
+        target_landmark_indices: [28, 29, 30, 31, 24]
+    },
+    "upper_right_eye": {
+        weight: 1,
+        target_landmark_indices: [19, 18, 17, 16, 15]
+    },
+    "lower_right_eye": {
+        weight: 1,
+        target_landmark_indices: [19, 20, 21, 22, 15]
+    },
+    
+    # nose curves
+    "nose_ridge": {
+        weight: 1,
+        target_landmark_indices: [10, 11, 12, 13]
+    },
+    "left_nostril_crest": {
+        weight: 1,
+        target_landmark_indices: [37, 91, 92]
+    },
+    "right_nostril_crest": {
+        weight: 1,
+        target_landmark_indices: [33, 83, 84]
+    },
+    
+    # Eyebrows
+    "left_eyebrow": {
+        weight: 1,
+        target_landmark_indices: [5, 6, 7, 8, 9]
+    },
+    "right_eyebrow": {
+        weight: 1,
+        target_landmark_indices: [0, 1, 2, 3, 4]
+    },
+    
+    # Lip curves
+    "upper_lip_outer_left": {
+        weight: 1,
+        target_landmark_indices: [52, 51, 50, 49]
+    },
+    "upper_lip_outer_right": {
+        weight: 1,
+        target_landmark_indices: [48, 47, 46, 45]
+    },
+    
+    "upper_lip_inner_left": {
+        weight: 1,
+        target_landmark_indices: [60, 59, 58, 57, 42]
+    },
+    "upper_lip_inner_right": {
+        weight: 1,
+        target_landmark_indices: [56, 55, 54, 53, 42]
+    },
+    
+    "lower_lip_inner_left": {
+        weight: 1,
+        target_landmark_indices: [60, 66, 65, 64, 43]
+    },
+    "lower_lip_inner_right": {
+        weight: 1,
+        target_landmark_indices: [56, 63, 62, 61, 43]
+    },
+    
+    "lower_lip_outer_left": {
+        weight: 1,
+        target_landmark_indices: [52, 72, 71, 70, 44]
+    },
+    "lower_lip_outer_right": {
+        weight: 1,
+        target_landmark_indices: [48, 69, 68, 67, 44]
+    },
+  
+    # crests from eyes down, marking upper beginning of cheeks
+    # Sometimes difficult to define
+    "eye_cheek_crest_left": {
+        weight: 0.5,
+        target_landmark_indices: [79, 80, 81, 82]
+    },
+    "eye_cheek_crest_right": {
+        weight: 0.5,
+        target_landmark_indices: [75, 76, 77, 78]
+    },
+  
+    # nasolabial folds (crests connecting nose and mouth)
+    "nasolabial_fold_left": {
+        weight: 1,
+        target_landmark_indices: [92, 93, 94, 95, 96, 97, 98]
+    },
+    "nasolabial_fold_right": {
+        weight: 1,
+        target_landmark_indices: [84, 85, 86, 87, 88, 89, 90]
+    },
+    
+    # crest above chin (labiomental crease).
+    # This is the only line that goes from one side of the face to the other,
+    # so when flipping a mesh, we need to reverse its order.
+    "chin_crest": {
+        weight: 1,
+        target_landmark_indices: [99, 100, 101, 102, 103],
+        reverse_on_flip: True
+    },
+}
+
+
+# NICP optimization settings
+iteration_settings: [
+    {
+        # This specifies that we use NICP instead of torch optimization
+        "use_nicp": True,
+        # Uniform landmark weight (the individual weights are multiplied by this factor)
+        "lm_weight": 15,
+        # NICP stiffness term
+        "stiffness": 50,
+        # Transformation can only be optimized via torch
+        "optimize_transf": False,
+        # exclude correspondences if the source and target normals don't align well, i.e.,
+        # if their dot product falls below this threshold
+        "normal_thresh": 0.9,
+        # exclude correspondences if the target normals don't align well with the connection vector
+        # between source vertices and their target correspondences, i.e.,
+        # if their dot product falls below this threshold
+        "normal_connect_thresh": 0.6,
+        # This option registers the model to an adjusted version of the target mesh, where vertices
+        # estimated to be inside the target mesh are removed. This proved to be a helpful setting
+        # for registering the scalp region in scans that had some artifact structures inside of the head.
+        "remove_internal_structures": True
+    },
+    {
+        "use_nicp": True,
+        "lm_weight": 6,
+        "stiffness": 20,
+        "optimize_transf": False,
+        "normal_thresh": 0.9,
+        "normal_connect_thresh": 0.7,
+        "remove_internal_structures": True
+    },
+    {
+        "use_nicp": True,
+        "lm_weight": 1.5,
+        "stiffness": 5,
+        "optimize_transf": False,
+        "normal_thresh": 0.9,
+        "normal_connect_thresh": 0.8,
+        "remove_internal_structures": True
+    },
+    {
+        "use_nicp": True,
+        "lm_weight": 0,
+        "stiffness": 2,
+        "optimize_transf": False,
+        "normal_thresh": 0.9,
+        "normal_connect_thresh": 0.9,
+        "remove_internal_structures": True
+    },
+    {
+        "use_nicp": True,
+        "lm_weight": 0,
+        "stiffness": 0.8,
+        "optimize_transf": False,
+        "normal_thresh": 0.9,
+        "normal_connect_thresh": 0.9,
+        "remove_internal_structures": True
+    },
+    {
+        "use_nicp": True,
+        "lm_weight": 0,
+        "stiffness": 0.5,
+        "optimize_transf": False,
+        "normal_thresh": 0.9,
+        "normal_connect_thresh": 0.9,
+        "remove_internal_structures": True
+    },
+    {
+        "use_nicp": True,
+        "lm_weight": 0,
+        "stiffness": 0.35,
+        "optimize_transf": False,
+        "normal_thresh": 0.8,
+        "normal_connect_thresh": 0.9,
+    },
+    {
+        "use_nicp": True,
+        "lm_weight": 0,
+        "stiffness": 0.2,
+        "optimize_transf": False,
+        "normal_thresh": 0.7,
+        "normal_connect_thresh": 0.9,
+    },
+]

@@ -1,0 +1,84 @@
+# Config file for a PCA-model-based face registration
+
+# Path to face model; we choose the PCA model here, but the autoencoder would also work
+model_path: 'INFACE/pca_model.h5'
+# Define the landmarks on the model and their weighting to drive the registration
+model_landmarks: {
+     "right_eye_outer": {
+        weight: 1.0,
+     },
+     "right_eye_inner": {
+        weight: 1.0,
+     },
+     "left_eye_inner": {
+        weight: 1.0,
+     },
+     "left_eye_outer": {
+        weight: 1.0,
+     },
+     "nasion": {
+        weight: 0.5,
+     },
+     "pronasale": {
+        weight: 1.0,
+     },
+     "subnasale": {
+        weight: 1.0,
+     },
+     "cubids_bow_center": {
+        weight: 1.0,
+     },
+     "lower_lip_outer_middle": {
+        weight: 1.0,
+     },
+     "outer_lip_corner_right": {
+        weight: 1.0,
+     },
+     "outer_lip_corner_left": {
+        weight: 1.0,
+     },
+     "pogonion": {
+        weight: 0.3,
+     },
+     "ear_tragus_right": {
+        weight: 1.0,
+     },
+     "ear_tragus_left": {
+        weight: 1.0,
+     },
+}
+
+iteration_settings: [
+    {
+        "model_weight": 1,
+        "lm_weight": 1,
+        "dist_weight": 0,
+        "optimize_transf": True,
+        "normal_thresh": 0.9,
+        "normal_connect_thresh": 0.6
+    },
+    {
+        "model_weight": 0.1,
+        "lm_weight": 1,
+        "dist_weight": 1,
+        "optimize_transf": True,
+        "normal_thresh": 0.9,
+        "normal_connect_thresh": 0.6
+    },
+    {
+        "model_weight": 0.05,
+        "lm_weight": 0.4,
+        "dist_weight": 1,
+        "optimize_transf": False,
+        "normal_thresh": 0.8,
+        "normal_connect_thresh": 0.9
+    },
+    {
+        "model_weight": 0.02,
+        "lm_weight": 0.4,
+        "dist_weight": 1,
+        "optimize_transf": False,
+        "normal_thresh": 0.8,
+        "normal_connect_thresh": 0.9
+    },
+]

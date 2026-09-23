@@ -1,0 +1,136 @@
+# Config file for a PCA-model-based face registration
+
+# Path to head model; we choose the PCA model here, but the autoencoder would also work
+model_path: 'INCRAN/pca_head_model.h5'
+
+# Define the landmarks on the model and their weighting to drive the registration
+model_landmarks: {
+     "right_eye_outer": {
+        weight: 1.0,
+     },
+     "right_eye_inner": {
+        weight: 1.0,
+     },
+     "left_eye_inner": {
+        weight: 1.0,
+     },
+     "left_eye_outer": {
+        weight: 1.0,
+     },
+     "nasion": {
+        weight: 0.5,
+     },
+     "pronasale": {
+        weight: 1.0,
+     },
+     "subnasale": {
+        weight: 1.0,
+     },
+     "cubids_bow_center": {
+        weight: 1.0,
+     },
+     "lower_lip_outer_middle": {
+        weight: 1.0,
+     },
+     "outer_lip_corner_right": {
+        weight: 1.0,
+     },
+     "outer_lip_corner_left": {
+        weight: 1.0,
+     },
+     "pogonion": {
+        weight: 0.3,
+     },
+     "ear_tragus_right": {
+        weight: 1.0,
+     },
+     "ear_tragus_left": {
+        weight: 1.0,
+     },
+}
+
+# regional selection for principal curvature bounds
+# We empirically determined these bounds for the upper central region of the scalp
+# to robustly ignore the pointy top of the cap the babies were wearing. Adjust if needed.
+min_curvature_lower_bound:
+    upper_scalp_central: -2
+min_curvature_upper_bound:
+    upper_scalp_central: 9
+max_curvature_lower_bound:
+    upper_scalp_central: -2
+max_curvature_upper_bound:
+    upper_scalp_central: 9
+
+#
+# The head template contains some regions that we don't want to register
+#
+# The ignore indices are not optimized towards any correspondences, but they
+# are still part of the optimization
+vertex_regions_to_ignore: ["ears", "inner_eyelids", "inner_lips", "nose_holes"]
+#
+# The exclude indices, on the other hand, are taken completely out of the optimization.
+# E.g., since the eyes are separate mesh components on the head model, we exclude them.
+vertex_regions_to_exclude: ["eye_left", "eye_right", "inner_eyelids_ignore"]
+
+# Torch optimization setting
+# Each element of the list specifies one optimization loop that goes until convergence
+# The entries in each element are explained below.
+iteration_settings: [
+    {
+        # weight of the model weight regularization loss (squared normalized latent)
+        "model_weight": 1,
+        # weight of the landmark loss (Euclidean distance between source and target landmarks)
+        "lm_weight": 1,
+        # Correspondence weight (distance between the model vertices and the correspondences found on the target)
+        "dist_weight": 0,
+        # Whether to also optimize the transformation (translation and rotation)
+        # of the model mesh in addition to the model parameters.
+        "optimize_transf": True,
+        # exclude correspondences if the source and target normals don't align well, i.e.,
+        # if their dot product falls below this threshold
+        "normal_thresh": 0.9,
+        # exclude correspondences if the target normals don't align well with the connection vector
+        # between source vertices and their target correspondences, i.e.,
+        # if their dot product falls below this threshold
+        "normal_connect_thresh": 0.6
+    },
+    {
+        "model_weight": 0.1,
+        "lm_weight": 1,
+        "dist_weight": 1,
+        "optimize_transf": True,
+        "normal_thresh": 0.9,
+        "normal_connect_thresh": 0.6
+    },
+    {
+        "model_weight": 0.05,
+        "lm_weight": 0.4,
+        "dist_weight": 1,
+        "optimize_transf": False,
+        "normal_thresh": 0.8,
+        "normal_connect_thresh": 0.9
+    },
+    {
+        "model_weight": 0.02,
+        "lm_weight": 0.4,
+        "dist_weight": 1,
+        "optimize_transf": False,
+        "normal_thresh": 0.8,
+        "normal_connect_thresh": 0.9
+    },
+    {
+        "model_weight": 0.02,
+        "lm_weight": 0.4,
+        "dist_weight": 1,
+        "optimize_transf": False,
+        "normal_thresh": 0.8,
+        "normal_connect_thresh": 0.9,
+        # These last three settings allow for going outside of the model space
+        # We basically optimize the actual vertices instead of the model parameters,
+        # and we couple the vertices to not go too far away from the model via edge coupling_weight
+        # while also ensuring a smooth result via the Laplacian, cf. FLAME paper.
+        "optimize_template": True,
+        "coupling_weight": 1,
+        "laplacian_diff_weight": 1
+    },
+]
